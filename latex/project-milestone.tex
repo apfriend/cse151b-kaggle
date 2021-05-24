@@ -1,0 +1,192 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2021
+
+% ready for submission
+% \usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+\usepackage[preprint]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2021}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+\title{CSE 151B Project Milestone Report}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+    Alexander Friend\\
+    \texttt{apfriend@ucsd.edu}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
+    both the left- and right-hand margins. Use 10~point type, with a vertical
+    spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
+    bold, and in point size 12. Two line spaces precede the abstract. The abstract
+    must be limited to one paragraph.
+\end{abstract}
+
+\section{Task Description and Exploratory Analysis}
+    \subsection{Problem A [1 points]}        
+        \textbf{
+            Describe in your own words what the task is and why it is
+            important. Define the input and output in mathematical language and formulate your
+            prediction task. Refer to week 1 lectures if you need help.
+        }
+        
+        The task for this Kaggle competition is to predict the positions of 60 individual 
+        vehicles 3 seconds into the future, given an initial 2 second observation. This is 
+        an important task as autonomous vehicles (AV) are being increasingly rolled out to the public,
+        and are expected to become the future standard of automobile transportation. In order 
+        for this future to be realized however, AV's must be able to predict future movement and positions
+        of objects in their visinity with high accuracy in order for AV's to be safer than human drivers.
+
+        Our data is split into two sets, a training set and test set, title {\fontfamily{qcr}\selectfont new\_train} and 
+        {\fontfamily{qcr}\selectfont new\_val\_in}, respectively. The training dataset contains the following fields: 
+        
+        \begin{itemize}            
+            \item {\fontfamily{qcr}\selectfont p\_in} - the (x,y) position input in the first two seconds (19 time steps)
+            \item {\fontfamily{qcr}\selectfont v\_in} - the (x,y) velocity input in the first two seconds (19 time steps)
+            \item {\fontfamily{qcr}\selectfont p\_out} - the (x,y) position output in the next three seconds (30 time steps)
+            \item {\fontfamily{qcr}\selectfont v\_out} - the (x,y) velocity output in the next three seconds (30 time steps)
+            \item {\fontfamily{qcr}\selectfont track\_id} - the track\_id for each vehicle in the output sequence (30 time steps)
+            \item {\fontfamily{qcr}\selectfont scene\_idx} - the id of this scene
+            \item {\fontfamily{qcr}\selectfont agent\_id} - track id for the agent in this scene
+            \item {\fontfamily{qcr}\selectfont car\_mask} - boolean index for the real car, we need to align the car numbers
+            \item {\fontfamily{qcr}\selectfont lane} - (x,y,z) for centerline nodes in this scene (z position is always $0$)
+            \item {\fontfamily{qcr}\selectfont lane\_norm} - (x,y,z) the direction of each lane node (z position is always $0$)
+        \end{itemize}
+
+        The test set contains the same fields, except it is lacking the {\fontfamily{qcr}\selectfont p\_out} and
+        {\fontfamily{qcr}\selectfont v\_out} fields, as these are the fields to be predicted. 
+        
+        Using these datasets, our input will be the the positions ({\fontfamily{qcr}\selectfont p\_in}), velocties 
+        ({\fontfamily{qcr}\selectfont v\_in}), and ID's of $60$ other vehicles ({\fontfamily{qcr}\selectfont track\_id}) 
+        in the scene, as well as information on the position of the lanes. Lane information will include the position
+        of the center of the lanes (({\fontfamily{qcr}\selectfont lane})) in the scene and the direction of each lane 
+        ({\fontfamily{qcr}\selectfont lane\_norm}). There can be more than one lane in a scene.
+        Using all the data in this input set would result with $19$ position and velocity
+        values for each vehicle over a period of $2$ seconds and $\left( k \times 3 \right)$ values for each $k$ lane position(s) 
+        and direction(s). This gives us 
+        $\left( 2 \times \left( 19 \times 2 \right) \times 60 \right) + \left( 2 \times 3k \right) = 4566k$ dimensions in each
+        input datapoint for $k$ lanes in each scene.
+
+        The output will be the ID of each of the $60$ other vehicles in the scene ({\fontfamily{qcr}\selectfont scene\_idx}) 
+        with their respective positions ({\fontfamily{qcr}\selectfont p\_out}). The output will have $10$ records/second 
+        for the $3$ second prediction period for each of the $60$ vehicles. This means that the output csv file will have 
+        $\left( 10 \times 3 \times 60 \right) + 1 = 3201$,
+        rows including the header, as each row contains the {\fontfamily{qcr}\selectfont scene\_idx}, and 
+        {\fontfamily{qcr}\selectfont p\_out} of all the vehicles in that time frame. 
+        It will therefore have $61$ columns, one column for each vehicle position ({\fontfamily{qcr}\selectfont p\_out})
+        as well as a column for the corresponding scene id ({\fontfamily{qcr}\selectfont scene\_idx}).
+
+
+
+    \subsection{Problem B [1 points]}        
+        \textbf{
+            Run the provided Jupyter notebook for loading the data. Provide
+            exploratory analysis on the data and report your findings with texts and figures. Your
+            report should answer the following questions at a minimum:
+            \begin{itemize}
+                \item what is the train/test data size, how many dimensions of inputs/outputs
+                \item what is the distribution of input positions for all agents (hint: use histogram)
+                \item what is the distribution of output positions for all agents (hint: use histogram)
+                \item what is the distribution of velocity (magnitude) of all agents and the target agent
+            \end{itemize}
+            If you include more exploratory analysis beyond the above questions that provides in-
+            sights into the data, you will receive bonus points.
+        }
+
+        The training data set contains $205,944$ training values, each of dimension
+        $2 \times 60 \times 19 \times 4$. Each training value contains the input and output positions
+        and velocities of each of the $60$ cars $1.9$ seconds, at a sampling rate of $10\mathrm{Hz}$.
+
+        The validation set contains $3,200$ values, each of dimension
+        $2 \times \times 60 \times 19 \times 4$. Each training value contains the input and output positions
+        and velocities of each of the $60$ cars $1.9$ seconds, at a sampling rate of $10\mathrm{Hz}$.
+
+
+\section{Deep Learning Model and Experiment Design}
+\label{gen_inst}
+    \subsection{Problem A [1 Points]}
+        \textbf{
+            Describe how you set up the training and testing design for deep
+            learning. Answer the following questions:
+            \begin{itemize}
+                \item What computational platform/GPU did you use for training/testing?
+                \item What is your optimizer? How did you tune your learning rate, learning rate decay,
+                momentum and other parameters?
+                \item How did you make multistep (30 step) prediction for each target agent?
+                \item How many epoch did you use? What is your batch-size? How long does it take to
+            train your model for one epoch (going through the entire training data set once)?
+            \end{itemize}
+            Explain why you made these design choices. Was it motivated by your past experience?
+            Or was it due to the limitation from your computational platform? You are welcome to
+            use screenshots or provide code snippets to explain your design.
+        }
+
+        My model will be a PyTorch \textit{nerual network (make sure to describe actual model)}, running in an Anaconda environment.
+        The platform I am currently working in is my local machine running Ubuntu 20.04 with a 4-core 4-thread Intel i7-7600k CPU 
+        running at 4.2 GHz, a GTX 1070 GPU with a max clock speed of 1721 MHz and 8 GB of GDDR5 memory, and 16 GB of 2400 MHz DDR4 memory.
+        
+        
+    \subsection{Problem B [1 Points]}        
+        \textbf{
+            Describe the models you have tried to make predictions. You
+            should always start with simple models (such as Linear Regression) and gradually in-
+            crease the complexity of your model. Include pictures/sketch of your model architecture
+            if that helps. You can also use mathematical equations to explain your prediction logic.
+        }
+
+
+\section{Experiment Results and Future Work}
+\label{headings}
+    \subsection{Problem A [1 points]}
+
+        \textbf{
+            Play with different designs of your model and experiments and
+            report the following for your best-performing design:
+            \begin{itemize}
+                \item Visualize the training loss (RMSE) value over training steps (You should expect to
+                see an exponential decay).
+                \item Randomly sample a few training samples after the training has finished. Visualize
+                the ground truth and your predictions
+                \item Your current ranking on the leaderboard and your test RMSE.
+            \end{itemize}
+            Summarize your current experiment results. If you have tried more than one experiment
+            design, compare all of them in a table/figure.
+            Analyze the results and identify the lessons/issues that you have learned so far. Briefly
+            discuss what you plan to do to improve the performance in the following weeks.
+        }
+
+
+\end{document}
+

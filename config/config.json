@@ -1,0 +1,9 @@
+{
+    "batch_size" : 64,
+    "num_workers" : 4,
+    "train_path" : "./data/new_train/new_train/",
+    "val_path" : "./data/new_val_in/new_val_in",
+    "device" : "cuda",
+    "train_save_path" : "save-data/2021.05.19-new-test.csv",
+    "ema_weight" : 0.75
+}
