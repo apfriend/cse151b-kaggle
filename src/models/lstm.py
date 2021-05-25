@@ -80,10 +80,11 @@ def train(model, data_loader, n_epochs, filename, ema_weight, device='cuda:0', v
                 print(loss2_str)
             
             data.append([epoch, i_batch, loss_ema.item(), loss.item(), loss_ema2.item(), loss2.item()])
+    
     columns=["epoch","iteration","loss_ema","loss", "loss_ema2", "loss2"]
     df=pd.DataFrame(dict(zip(columns, np.array(data).T)))
     display(df)
-    df.to_csv(filename)
+    df.to_csv(filename, index=False)
     return model
 
 class LSTM_model(nn.Module):
