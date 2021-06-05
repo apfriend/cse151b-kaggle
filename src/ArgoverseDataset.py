@@ -9,7 +9,6 @@ class ArgoverseDataset(Dataset):
         super(ArgoverseDataset, self).__init__()
         self.data_path = data_path
         self.transform = transform
-
         self.pkl_list = glob(os.path.join(self.data_path, '*'))
         self.pkl_list.sort()
         
@@ -17,7 +16,6 @@ class ArgoverseDataset(Dataset):
         return len(self.pkl_list)
 
     def __getitem__(self, idx):
-
         pkl_path = self.pkl_list[idx]
         with open(pkl_path, 'rb') as f:
             data = pickle.load(f)

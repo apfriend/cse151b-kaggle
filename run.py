@@ -2,12 +2,16 @@ import json
 import torch
 from torch.utils.data import DataLoader
 import argparse
-import src.models.lstm as lstm
-import src.models.linear as linear
-import src.util_functions as utils
-from src.ArgoverseDataset import ArgoverseDataset
 import multiprocessing
 from tqdm import tqdm
+import numpy as np
+#####LOCAL SCRIPTS#####
+import src.models.lstm as lstm
+import src.models.linear as linear
+import src.utility as utility
+from src.ArgoverseDataset import ArgoverseDataset
+import src.load_data as load_data
+import src.run_model as run_model
 
 CONFIG_PATH="config/config.json"
 
@@ -48,7 +52,7 @@ if __name__=="__main__":
         dataset=train_dataset,
         batch_size=batch_sz,
         shuffle=True,
-        collate_fn=utils.collate_train,
+        collate_fn=utility.collate_train,
         num_workers=multiprocessing.cpu_count()
     )
 

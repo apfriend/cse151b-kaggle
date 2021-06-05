@@ -1,4 +1,5 @@
 import json
+import torch
 from torch.utils.data import DataLoader
 import argparse
 import src.models.lstm as lstm
@@ -6,10 +7,11 @@ import src.models.linear as linear
 import src.util_functions as utils
 from src.ArgoverseDataset import ArgoverseDataset
 import multiprocessing
+from tqdm import tqdm
 
 CONFIG_PATH="config/config.json"
 
-def run_trained_model(model, data_path, batch_size):
+def run_trained_model(model, dataset, batch_size, device):
     '''
     Run trained PyTorch model
     ----------
@@ -17,20 +19,52 @@ def run_trained_model(model, data_path, batch_size):
     ----------
         model - PyTorch Neural Net Model
             Trained PyTorch model to make prediction
-        data_path - str
-            path to data to run <model> on
+        dataset - PyTorch dataset object
+            Dataset object to run model on
         batch_size - int
             batch size for DataLoader
+        device - str
+            device model is on. Options are either 'cuda' or 'cpu'
+    -------
+    Returns
+    -------
+        A 2d list of containing the predictions for 60 cars for each scene. 
+        list of shape (3200,61)
     '''
-    dataset=ArgoverseDataset(data_path=data_path)
+    # dataset=ArgoverseDataset(data_path=data_path)
 
     data_loader = DataLoader(
         dataset=dataset,
         batch_size=batch_size, 
         shuffle = False, 
-        collate_fn=utils.collate_train, 
+        collate_fn=load_data.collate_val, 
         num_workers=multiprocessing.cpu_count()
     )
+
+    out_data=[]
+    scenes=[]
+
+    model.eval()
+    with torch.no_grad():
+       for track_ids, agent_ids, scene_idxs, inp in tqdm(data_loader):
+            inp=inp.to(device)
+
+            indices=[utils.get_agent_idx(agent_ids[i], track_ids[i]) for i in range(len(agent_ids))]
+            indices=torch.tensor(indices, dtype=torch.int).to(device)
+
+            pred=model(inp.reshape(len(inp), -1)).reshape((-1, 60, 30, 4))
+            pos_idx=torch.tensor([0,1]).to(device)
+            positions=torch.index_select(pred.to(device), 3, pos_idx)
+            agent_pos=torch.zeros([batch_size,1,30,2])
+            for i in range(indices.shape[0]):
+                agent_pos[i]=positions[i][indices[i]]
+            agent_pos=agent_pos.reshape(batch_size,60)
+            out_data.append(agent_pos.detach().cpu().numpy())
+
+            scene_idxs=np.array(scene_idxs).reshape(1,-1)[0]
+            scenes.extend(list(scene_idxs))
+
+    return np.array(scenes), np.array(out_data).reshape(3200,60)
 
 if __name__=="__main__":
     
