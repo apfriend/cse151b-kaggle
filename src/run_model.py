@@ -30,11 +30,7 @@ def model_predict(model, data, physics_model=False):
         torch.FloatTensor
         predicted outputs of <model>(<data>)        
     '''
-    if isinstance(model, lstm.LSTM_model):
-        data=data[:,:-1]
-        out=model(data)[:,-30:]
-        out=out.reshape((-1,30,60,4)).transpose(1,2)
-    elif isinstance(model, physics.avg_velocity_model):
+    if not physics_model:
         data=data.reshape((len(data),-1))#.reshape((-1, 60, 30, 4))
         out=model(data)
         out=out.reshape((-1,60,30,4))

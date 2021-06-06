@@ -169,11 +169,11 @@ class multilayer_model(nn.Module):
 def train(model, data_loader, test_data, n_epochs, filename, ema_weight, dropout, batch_sz, 
     device='cuda:0', verbose=False, normalize=False):
     '''
-    Train linear model
+    Train LSTM model
     ----------
     Parameters
     ----------
-        model - torch nerual network linear model
+        lmodel - torch nerual network linear model
             model to train
         data_loader - torch DataLoader class 
             training data for model
@@ -197,7 +197,7 @@ def train(model, data_loader, test_data, n_epochs, filename, ema_weight, dropout
     Returns
     -------
         (model, df)
-        1. Trained linear model
+        1. Trained LSTM model
         2. Pandas Dataframe of loss for each iteration
     '''    
     if dropout:
