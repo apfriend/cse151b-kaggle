@@ -398,6 +398,25 @@ def convert_seconds(seconds):
     seconds=seconds%60
     return hours, minutes, seconds  
 
+def get_model_data(fn):
+    '''Get model name, dropout, batchsize and number of epochs from filename'''
+    fn_list=fn.split('-')
+    model_name=' '.join(fn_list[1:3])
+    dropout=fn_list[3]
+    m=re.search(r'\d+', dropout)
+
+    dropout='0.'+m.group(0)
+    dropout=float(dropout)
+    batch_size=fn_list[4]
+    m=re.search(r'\d+', batch_size)
+
+    batch_size=int(m.group(0))
+    epochs=fn_list[5]
+    m=re.search(r'\d+', epochs)
+
+    epochs=int(m.group(0))
+    return model_name, dropout, batch_size, epochs
+
 def compare_rmse(src, data_path, device='cuda:0'):
     '''
     Compare the Root Mean Square Error loss across models
@@ -420,26 +439,6 @@ def compare_rmse(src, data_path, device='cuda:0'):
 
     col_names=['model_name', 'rmse', 'dropout', 'batch_size', 'num_epochs']
     model_data=[[None]*5]*len(model_fns)
-
-    def get_model_data(fn):
-        '''Get model name, dropout, batchsize and number of epochs from filename'''
-        fn_list=fn.split('-')
-        model_name=' '.join(fn_list[1:3])
-
-        dropout=fn_list[3]
-        m=re.search(r'\d+', dropout)
-        dropout='0.'+m.group(0)
-        dropout=float(dropout)
-
-        batch_size=fn_list[4]
-        m=re.search(r'\d+', batch_size)
-        batch_size=int(m.group(0))
-
-        epochs=fn_list[5]
-        m=re.search(r'\d+', epochs)
-        epochs=int(m.group(0))
-
-        return model_name, dropout, batch_size, epochs
 
     find_model={
         'simple linear':linear.simple_model,
@@ -499,7 +498,7 @@ def compare_rmse(src, data_path, device='cuda:0'):
     
     return model_df
 
-def visualize_model_loss(df, model, by):
+def visualize_model_loss(df, model, dst=None):
     '''
     Visualize loss of model for different dropout, batch_size, or training epochs
     ----------
@@ -509,8 +508,8 @@ def visualize_model_loss(df, model, by):
             Dataframe of models with their respective test losses, dropout rates, batch sizes, and training epochs
         model - str
             Name of model to visualize
-        by - str
-            Which parameter to compare. Options are 'dropout', 'batch_size', and 'epoch'
+        dst - str
+            Path to save to
     '''
     df=df.loc[df.model_name==model].copy()
     batch_df=df.drop(columns=['dropout']).drop_duplicates(subset=['batch_size','num_epochs'])
@@ -543,6 +542,9 @@ def visualize_model_loss(df, model, by):
     ax1.set_ylabel('RMSE',fontsize=16)
     ax1.set_xlabel('Epochs',fontsize=16)
     ax2.set_xlabel('Epochs',fontsize=16)
+
+    if dst:
+        fig.savefig(dst)
     # sns.relplot(
     #     data=df,
     #     x='num_epochs',

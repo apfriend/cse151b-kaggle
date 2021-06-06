@@ -1,8 +1,15 @@
 {
-    "batch_size" : 64,
-    "train_path" : "/home/apfriend/ucsd/CURRENT/cse151b/kaggle/data/new_train/new_train",
-    "val_path" : "/home/apfriend/ucsd/CURRENT/cse151b/kaggle/data/new_val_in/new_val_in",
-    "device" : "cuda",
-    "train_save_path" : "save-data/i-hate-my-live.csv",
-    "ema_weight" : 0.75
+    "models" : [
+        "final-simple-model-dropout25-batchsz128-epoch10.pth",
+        "simple-linear-ema75-epoch20-batchsz128-dropout25-batchnorm.pth",
+        "simple-linear-ema75-epoch20-batchsz128-dropout10-batchnorm.pth",
+        "final-simple-model-dropout25-batchsz64-epoch10.pth",
+        "final-multilayer-linear-dropout25-batchsz128-epoch10.pth"
+    ],
+    "train_path" : "data/train-data",
+    "val_path" : "data/validation-data",
+    "device" : "cuda:0",
+    "train_save_path" : "data/save-data",
+    "model_path" : "trained-models/final-models",
+    "submit-path": "data/submit-data"
 }
