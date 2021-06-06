@@ -8,6 +8,9 @@ from tqdm import tqdm
 #####LOCAL SCRIPTS#####
 import utility
 import load_data
+import models.lstm as lstm
+import models.linear as linear
+import models.physics as physics
 
 def model_predict(model, data, physics_model=False):
     '''
@@ -34,6 +37,17 @@ def model_predict(model, data, physics_model=False):
     else:
         out=model(data)
     return out
+    # if isinstance(model, lstm.LSTM_model):
+    #     data=data[:,:-1]
+    #     out=model(data)[:,-30:]
+    #     out=out.reshape((-1,30,60,4)).transpose(1,2)
+    # elif isinstance(model, physics.avg_velocity_model):
+    #     data=data.reshape((len(data),-1))#.reshape((-1, 60, 30, 4))
+    #     out=model(data)
+    #     out=out.reshape((-1,60,30,4))
+    # else:
+    #     out=model(data)
+    # return out
 
 def train_evaluate(model, train_path, test_path, loss_data_fp, fig_fp, epochs, batch_size, train_func, 
         ema_weight, plot_size=50, dropout=None, epoch_loss=False, normalize=False, device='cuda:0',
@@ -153,7 +167,7 @@ def run_model_submit(model, data_path, batch_size, physics_model=False, device='
             indices=torch.tensor(indices, dtype=torch.int).to(device)
             
             if physics_model:
-                pred=model_predict(model, inp, physics_model=True)
+                pred=model_predict(model, inp, physics_model=physics_model)
                 positions=pred
             else:
                 pred=model_predict(model, inp)
