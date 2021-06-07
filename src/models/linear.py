@@ -134,21 +134,34 @@ class multilayer_model(nn.Module):
         
         # self.hidden_dim=8096
         self.hidden_dim=1024
-        self.num_layers=3
+        self.num_layers=2
         self.device=device
                 
-        self.linear=nn.Sequential(
-            nn.Dropout(p=dropout),
-            nn.Linear(
-                in_features=240*19, 
-                out_features=self.hidden_dim
-            ),
-            nn.ReLU(),
-            nn.Linear(
-                in_features=self.hidden_dim,
-                out_features=240*30
+        if dropout:
+            self.linear=nn.Sequential(
+                nn.Dropout(p=dropout),
+                nn.Linear(
+                    in_features=240*19, 
+                    out_features=self.hidden_dim
+                ),
+                nn.ReLU(),
+                nn.Linear(
+                    in_features=self.hidden_dim,
+                    out_features=240*30
+                )
             )
-        )
+        else:
+            self.linear=nn.Sequential(
+                nn.Linear(
+                    in_features=240*19, 
+                    out_features=self.hidden_dim
+                ),
+                nn.ReLU(),
+                nn.Linear(
+                    in_features=self.hidden_dim,
+                    out_features=240*30
+                )
+            )
         
     def forward(self, x):        
         x=self.linear(x)

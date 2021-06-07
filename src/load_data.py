@@ -135,5 +135,6 @@ def load_model(src, model, device='cuda:0'):
     '''
     state_dict=torch.load(src)
     model.load_state_dict(state_dict=state_dict)
+    # print(device)
     model.to(device)
     return model

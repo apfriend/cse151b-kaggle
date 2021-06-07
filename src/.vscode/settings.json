@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/apfriend/anaconda3/envs/cse151b/bin/python"
+    "python.pythonPath": "/home/apfriend/anaconda3/envs/cse151b/bin/python",
+    "workbench.editor.labelFormat": "medium"
 }
